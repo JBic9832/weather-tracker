@@ -10,6 +10,7 @@ import (
 
 type Server struct {
 	listenAddr string
+	RedisStore *Storage
 }
 
 type ServerError struct {
@@ -34,8 +35,10 @@ func EncodeJSON(w http.ResponseWriter, status int, data any) error {
 }
 
 func NewServer(listenAddr string) *Server {
+	rdb := NewStorage("localhost:6379")
 	return &Server{
 		listenAddr: listenAddr,
+		RedisStore: rdb,
 	}
 }
 
@@ -43,6 +46,8 @@ func (s *Server) Start() error {
 	router := mux.NewRouter()
 
 	log.Printf("Server is live at http://localhost%s", s.listenAddr)
+
+	router.Handle("/weather/{city}", makeHandlerFunc(s.handleGetWeather))
 
 	return http.ListenAndServe(s.listenAddr, router)
 }
