@@ -6,11 +6,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 func GetWeatherFromEndpoint(city string) (WeatherResponse, error) {
 	var response WeatherResponse
-	resp, err := http.Get(fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=%s&units=imperial&appid=7d49905c92261c5feac800e61b06f302", city))
+	response.ZipCode = city
+	apiKey := os.Getenv("WeatherAPIKey")
+	resp, err := http.Get(fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?zip=%s&units=imperial&appid=%s", city, apiKey))
 	if err != nil {
 		return response, err
 	}
@@ -28,10 +31,10 @@ func GetWeatherFromEndpoint(city string) (WeatherResponse, error) {
 	return response, nil
 }
 
-func GetNewForcast(city string) (WeatherResponse, error) {
-	log.Printf("Making external request for city %s", city)
+func GetNewForcast(cityZip string) (WeatherResponse, error) {
+	log.Printf("Making external request for city %s", cityZip)
 
-	response, err := GetWeatherFromEndpoint(city)
+	response, err := GetWeatherFromEndpoint(cityZip)
 	if err != nil {
 		return response, err
 	}
@@ -40,8 +43,6 @@ func GetNewForcast(city string) (WeatherResponse, error) {
 }
 
 func (s *Server) GetCachedForcast(city string) (WeatherResponse, error) {
-	log.Printf("Getting results for city %s from cached memory", city)
-
 	cachedForcast, err := s.RedisStore.GetForcastByCity(city)
 	if err != nil {
 		return WeatherResponse{}, err

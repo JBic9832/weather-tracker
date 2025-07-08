@@ -19,4 +19,5 @@ type WeatherResponse struct {
 	Weather     []Forcast `json:"weather"`
 	City        string    `json:"name"`
 	Coordinates Coord     `json:"coord"`
+	ZipCode     string    `json:"zipcode"`
 }

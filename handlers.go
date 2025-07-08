@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -9,6 +10,8 @@ import (
 func (s *Server) handleGetWeather(w http.ResponseWriter, r *http.Request) error {
 	vars := mux.Vars(r)
 	city := vars["city"]
+
+	log.Println()
 
 	exists, err := s.RedisStore.DoesEntryExist(city)
 	if err != nil {

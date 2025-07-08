@@ -39,12 +39,11 @@ func FormatCity(city string) string {
 
 func (s *Storage) DoesEntryExist(cityName string) (bool, error) {
 	city := FormatCity(cityName)
+	log.Println("Checking for city in cache:", city)
 	exists, err := s.RedisDB.Exists(s.Context, city).Result()
 	if err != nil {
 		return false, err
 	}
-
-	log.Printf("Exists %s: %d\n", city, exists)
 
 	return exists > 0, nil
 }
@@ -55,20 +54,21 @@ func (s *Storage) StoreForcastByCity(forcast WeatherResponse) error {
 		return err
 	}
 
-	city := FormatCity(forcast.City)
+	city := forcast.ZipCode
 	log.Printf("Caching result for: %s\n", city)
 
-	if err := s.RedisDB.Set(s.Context, city, forcastJson, 20*time.Second).Err(); err != nil {
+	if err := s.RedisDB.Set(s.Context, city, forcastJson, 20*time.Minute).Err(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *Storage) GetForcastByCity(cityName string) (WeatherResponse, error) {
-	city := FormatCity(cityName)
+func (s *Storage) GetForcastByCity(cityZip string) (WeatherResponse, error) {
+	log.Printf("Getting cached result for: %s\n", cityZip)
+
 	var weatherData WeatherResponse
-	data, err := s.RedisDB.Get(s.Context, city).Bytes()
+	data, err := s.RedisDB.Get(s.Context, cityZip).Bytes()
 	if err != nil {
 		return weatherData, err
 	}
